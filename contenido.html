@@ -1,0 +1,569 @@
+<html><head><base href="http://www.example.com">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pixza - Cómo Configurar Backups Automatizados en Linux</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            /* Light theme variables - Refined colors */
+            --primary-color: #3b82f6;
+            --secondary-color: #1e293b;
+            --accent-color: #ef4444;
+            --background-color: #f8fafc;
+            --text-color: #334155;
+            --card-bg: white;
+            --navbar-bg: rgba(255, 255, 255, 0.95);
+            --shadow-color: rgba(0,0,0,0.08);
+            --hover-shadow: rgba(0,0,0,0.12);
+        }
+
+        [data-theme="dark"] {
+            /* Dark theme variables - Enhanced contrast */
+            --primary-color: #60a5fa;
+            --secondary-color: #94a3b8;
+            --accent-color: #f87171;
+            --background-color: #0f172a;
+            --text-color: #e2e8f0;
+            --card-bg: #1e293b;
+            --navbar-bg: rgba(15, 23, 42, 0.95);
+            --shadow-color: rgba(0,0,0,0.25);
+            --hover-shadow: rgba(0,0,0,0.35);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+
+        body {
+            background-color: var(--background-color);
+            color: var(--text-color);
+            transition: all 0.3s ease;
+            line-height: 1.6;
+        }
+
+        .navbar {
+            background-color: var(--navbar-bg);
+            padding: 1rem;
+            box-shadow: 0 2px 10px var(--shadow-color);
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .nav-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            text-decoration: none;
+            transition: transform 0.3s ease;
+        }
+
+        .logo:hover {
+            transform: scale(1.05);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: var(--text-color);
+            font-weight: 500;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .nav-links a:hover {
+            color: var(--primary-color);
+            background-color: var(--shadow-color);
+        }
+
+        .theme-toggle {
+            background: none;
+            border: none;
+            color: var(--text-color);
+            cursor: pointer;
+            padding: 0.5rem;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+            border-radius: 50%;
+        }
+
+        .theme-toggle:hover {
+            color: var(--primary-color);
+            background-color: var(--shadow-color);
+            transform: rotate(180deg);
+        }
+
+        .hamburger {
+            display: none;
+            cursor: pointer;
+            font-size: 1.5rem;
+            color: var(--text-color);
+            transition: color 0.3s ease;
+        }
+
+        main {
+            margin-top: 90px;
+            padding: 2rem;
+            max-width: 1200px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .tutorial-content {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .content-header {
+            margin-bottom: 3rem;
+        }
+
+        .meta-info {
+            display: flex;
+            gap: 1.5rem;
+            color: var(--secondary-color);
+            font-size: 0.9rem;
+            margin-top: 1rem;
+        }
+
+        .meta-info span {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .table-of-contents {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin: 2rem 0;
+            box-shadow: 0 4px 6px var(--shadow-color);
+        }
+
+        .table-of-contents ul {
+            list-style: none;
+            margin-top: 1rem;
+        }
+
+        .table-of-contents li {
+            margin: 0.5rem 0;
+        }
+
+        .table-of-contents a {
+            color: var(--text-color);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            display: block;
+            padding: 0.5rem;
+            border-radius: 6px;
+        }
+
+        .table-of-contents a:hover {
+            color: var(--primary-color);
+            background: var(--shadow-color);
+            padding-left: 1rem;
+        }
+
+        .code-block {
+            background: var(--card-bg);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            position: relative;
+            box-shadow: 0 4px 6px var(--shadow-color);
+        }
+
+        .code-block pre {
+            overflow-x: auto;
+            font-family: 'Consolas', monospace;
+        }
+
+        .copy-btn {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: var(--background-color);
+            border: none;
+            padding: 0.5rem;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .copy-btn:hover {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .tip-box {
+            background: var(--card-bg);
+            border-left: 4px solid var(--primary-color);
+            padding: 1.5rem;
+            margin: 2rem 0;
+            display: flex;
+            gap: 1rem;
+            border-radius: 0 8px 8px 0;
+            box-shadow: 0 4px 6px var(--shadow-color);
+        }
+
+        .tip-box i {
+            font-size: 1.5rem;
+            color: var(--primary-color);
+        }
+
+        .navigation-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 1px solid var(--shadow-color);
+        }
+
+        .prev-btn, .next-btn {
+            text-decoration: none;
+            color: var(--text-color);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            background: var(--card-bg);
+            transition: all 0.3s ease;
+        }
+
+        .prev-btn:hover, .next-btn:hover {
+            background: var(--primary-color);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+                position: absolute;
+                top: 70px;
+                left: 0;
+                right: 0;
+                background: var(--navbar-bg);
+                flex-direction: column;
+                padding: 1rem;
+                text-align: center;
+                backdrop-filter: blur(10px);
+                box-shadow: 0 4px 6px var(--shadow-color);
+            }
+
+            .nav-links.active {
+                display: flex;
+                animation: slideDown 0.3s ease-out forwards;
+            }
+
+            @keyframes slideDown {
+                from {
+                    opacity: 0;
+                    transform: translateY(-10px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+
+            .hamburger {
+                display: block;
+            }
+
+            main {
+                padding: 1rem;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .tutorial-content {
+                padding: 1rem;
+            }
+            
+            .meta-info {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+            
+            .navigation-buttons {
+                flex-direction: column;
+                gap: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-content">
+            <a href="https://example.com" class="logo">Pixza</a>
+            <div class="nav-links">
+                <a href="https://example.com/wiki"><i class="fas fa-book"></i> Wiki</a>
+                <a href="https://example.com/tutoriales" class="active"><i class="fas fa-graduation-cap"></i> Tutoriales</a>
+                <a href="https://example.com/backups"><i class="fas fa-server"></i> Backups</a>
+                <a href="https://example.com/about"><i class="fas fa-info-circle"></i> Acerca de</a>
+                <button class="theme-toggle" title="Cambiar tema">
+                    <i class="fas fa-moon"></i>
+                </button>
+            </div>
+            <div class="hamburger">
+                <i class="fas fa-bars"></i>
+            </div>
+        </div>
+    </nav>
+
+    <main>
+        <article class="tutorial-content">
+            <header class="content-header">
+                <h1>Cómo Configurar Backups Automatizados en Linux</h1>
+                <div class="meta-info">
+                    <span><i class="fas fa-clock"></i> Tiempo de lectura: 15 min</span>
+                    <span><i class="fas fa-calendar"></i> Actualizado: 15 Marzo 2024</span>
+                    <span><i class="fas fa-tags"></i> Backups, Linux, Automatización</span>
+                </div>
+            </header>
+
+            <nav class="table-of-contents">
+                <h3>Contenido</h3>
+                <ul>
+                    <li><a href="#introduccion">Introducción</a></li>
+                    <li><a href="#prereq">Prerequisitos</a></li>
+                    <li><a href="#instalacion">Instalación</a></li>
+                    <li><a href="#configuracion">Configuración</a></li>
+                    <li><a href="#automatizacion">Automatización</a></li>
+                    <li><a href="#verificacion">Verificación</a></li>
+                </ul>
+            </nav>
+
+            <section id="introduccion">
+                <h2>Introducción</h2>
+                <p>Los backups automatizados son esenciales para mantener tus datos seguros. En este tutorial, aprenderemos cómo configurar un sistema de respaldo automatizado usando rsync y cron en Linux.</p>
+            </section>
+
+            <section id="prereq">
+                <h2>Prerequisitos</h2>
+                <ul class="requirements-list">
+                    <li>Acceso root o sudo al servidor</li>
+                    <li>Sistema Linux (Ubuntu/Debian/CentOS)</li>
+                    <li>Espacio de almacenamiento suficiente</li>
+                </ul>
+            </section>
+
+            <section id="instalacion">
+                <h2>Instalación de Herramientas</h2>
+                <div class="code-block">
+                    <pre><code>sudo apt update
+sudo apt install rsync
+sudo apt install cron</code></pre>
+                    <button class="copy-btn" title="Copiar código">
+                        <i class="fas fa-copy"></i>
+                    </button>
+                </div>
+            </section>
+
+            <section id="configuracion">
+                <h2>Configuración del Script de Backup</h2>
+                <p>Crearemos un script bash para manejar nuestros backups:</p>
+                <div class="code-block">
+                    <pre><code>#!/bin/bash
+SOURCE_DIR="/ruta/a/tus/archivos"
+BACKUP_DIR="/ruta/destino/backup"
+DATE=$(date +%Y-%m-%d)
+
+rsync -av --delete \
+    "$SOURCE_DIR" \
+    "$BACKUP_DIR/$DATE"</code></pre>
+                    <button class="copy-btn" title="Copiar código">
+                        <i class="fas fa-copy"></i>
+                    </button>
+                </div>
+            </section>
+
+            <section class="tip-box">
+                <i class="fas fa-lightbulb"></i>
+                <div>
+                    <h4>Consejo Pro</h4>
+                    <p>Siempre prueba tus scripts de backup en un entorno de prueba antes de implementarlos en producción.</p>
+                </div>
+            </section>
+
+            <div class="navigation-buttons">
+                <a href="/tutoriales" class="prev-btn">
+                    <i class="fas fa-arrow-left"></i> Volver a Tutoriales
+                </a>
+                <a href="/tutoriales/backup-restauracion" class="next-btn">
+                    Siguiente: Restauración de Backups <i class="fas fa-arrow-right"></i>
+                </a>
+            </div>
+        </article>
+    </main>
+
+    <script>
+        // Debounce function for performance optimization
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+
+        const hamburger = document.querySelector('.hamburger');
+        const navLinks = document.querySelector('.nav-links');
+        const themeToggle = document.querySelector('.theme-toggle');
+        const themeIcon = themeToggle.querySelector('i');
+
+        // Theme toggle functionality with smooth transition
+        function setTheme(isDark) {
+            requestAnimationFrame(() => {
+                if (isDark) {
+                    document.documentElement.setAttribute('data-theme', 'dark');
+                    themeIcon.classList.remove('fa-moon');
+                    themeIcon.classList.add('fa-sun');
+                    localStorage.setItem('theme', 'dark');
+                } else {
+                    document.documentElement.removeAttribute('data-theme');
+                    themeIcon.classList.remove('fa-sun');
+                    themeIcon.classList.add('fa-moon');
+                    localStorage.setItem('theme', 'light');
+                }
+            });
+        }
+
+        // Check for saved theme preference and system preference
+        const savedTheme = localStorage.getItem('theme');
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+        if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+            setTheme(true);
+        }
+
+        themeToggle.addEventListener('click', () => {
+            const isDark = document.documentElement.hasAttribute('data-theme');
+            setTheme(!isDark);
+        });
+
+        // Mobile menu functionality with improved animation
+        hamburger.addEventListener('click', (e) => {
+            e.stopPropagation();
+            navLinks.classList.toggle('active');
+        });
+
+        // Optimized event listeners
+        const closeMenu = debounce(() => {
+            navLinks.classList.remove('active');
+        }, 50);
+
+        document.querySelectorAll('.nav-links a').forEach(link => {
+            link.addEventListener('click', closeMenu);
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.navbar')) {
+                closeMenu();
+            }
+        });
+
+        // Add smooth scrolling for better UX
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+
+        // Intersection Observer for lazy loading and animations
+        const observerOptions = {
+            root: null,
+            rootMargin: '0px',
+            threshold: 0.1
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.category-card').forEach(card => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(20px)';
+            card.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+            observer.observe(card);
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Remove active class from all links
+            document.querySelectorAll('.nav-links a').forEach(link => {
+                link.classList.remove('active');
+            });
+            
+            // Add active class to about link
+            document.querySelector('.nav-links a[href*="about"]').classList.add('active');
+        });
+
+        document.querySelectorAll('.copy-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const codeBlock = this.previousElementSibling;
+                const code = codeBlock.textContent;
+                
+                navigator.clipboard.writeText(code).then(() => {
+                    // Visual feedback
+                    this.innerHTML = '<i class="fas fa-check"></i>';
+                    setTimeout(() => {
+                        this.innerHTML = '<i class="fas fa-copy"></i>';
+                    }, 2000);
+                });
+            });
+        });
+
+        // Smooth scroll for table of contents
+        document.querySelectorAll('.table-of-contents a').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('href').substring(1);
+                const target = document.getElementById(targetId);
+                
+                window.scrollTo({
+                    top: target.offsetTop - 100,
+                    behavior: 'smooth'
+                });
+            });
+        });
+    </script>
+</body>
+</html>
